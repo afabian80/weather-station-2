@@ -14,7 +14,7 @@ temp = "?"
 serial = i2c(port=1, address=0x3c)
 device = ssd1306(serial)
 ttf = '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf'
-font60 = ImageFont.truetype(ttf, 60)
+font60 = ImageFont.truetype(ttf, 66)
 
 
 def update_screen():
@@ -22,7 +22,7 @@ def update_screen():
     print('Temperature: {} C'.format(temp))
     img = Image.new('L', (128, 64))
     draw = ImageDraw.Draw(img)
-    temp_text = temp + u"\u00B0"
+    temp_text = str(temp)
     text_size = draw.textsize(temp_text, font=font60)
     x_offset = (128-text_size[0]) / 2
     y_offset = (64 - text_size[1]) / 2
