@@ -24,10 +24,8 @@ def update_screen():
     draw = ImageDraw.Draw(img)
     temp_text = temp + u"\u00B0"
     text_size = draw.textsize(temp_text, font=font60)
-    print('Text length: {}'.format(text_size))
     x_offset = (128-text_size[0]) / 2
     y_offset = (64 - text_size[1]) / 2
-    print('offset: ({},{})'.format(x_offset, y_offset))
     draw.text((x_offset, y_offset), temp_text, font=font60, fill=255)
     img_inv = PIL.ImageOps.invert(img)
     device.display(img.convert('1'))
@@ -45,7 +43,7 @@ def update_temperature():
         temp = m.group(1)
         print('Updated temperature: {} C'.format(temp))
     except AttributeError as e:
-        print('Cannot parse time: {}'.format(e))
+        print('Cannot parse temperature: {}'.format(e))
         raise
 
 
