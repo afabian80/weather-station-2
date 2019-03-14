@@ -22,7 +22,13 @@ def update_screen():
     print('Temperature: {} C'.format(temp))
     img = Image.new('L', (128, 64))
     draw = ImageDraw.Draw(img)
-    draw.text((20, 0), temp + u"\u00B0", font=font60, fill=255)
+    temp_text = temp + u"\u00B0"
+    text_size = draw.textsize(temp_text, font=font60)
+    print('Text length: {}'.format(text_size))
+    x_offset = (128-text_size[0]) / 2
+    y_offset = (64 - text_size[1]) / 2
+    print('offset: ({},{})'.format(x_offset, y_offset))
+    draw.text((x_offset, y_offset), temp_text, font=font60, fill=255)
     img_inv = PIL.ImageOps.invert(img)
     device.display(img.convert('1'))
     time.sleep(SCREEN_HOLD_SECONDS)
@@ -46,7 +52,7 @@ def update_temperature():
 if __name__ == '__main__':
     t = 0
     while True:
-        if t % 5 == 0:
+        if t % 30 == 0:
             update_temperature()
         update_screen()
         t += 1
