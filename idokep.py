@@ -1,14 +1,14 @@
 #!/usr/bin/python2
-
+import PIL
 import re
 import requests
-from datetime import timedelta
-from timeloop import Timeloop
-from oled.serial import i2c
-from oled.device import ssd1306
-from oled.render import canvas
-from PIL import Image, ImageFont, ImageDraw, ImageOps
 import time
+from PIL import Image, ImageFont, ImageDraw, ImageOps
+from datetime import timedelta
+
+from oled.device import ssd1306
+from oled.serial import i2c
+from timeloop import Timeloop
 
 loop = Timeloop()
 temp = "?"
@@ -18,13 +18,18 @@ ttf = '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf'
 font60 = ImageFont.truetype(ttf, 60)
 
 
-@loop.job(interval=timedelta(seconds=2))
+@loop.job(interval=timedelta(seconds=10))
 def update_screen():
     global temp
     print('Temperature: {} C'.format(temp))
-    with canvas(device) as c:
-        c.text((20,0), temp + u"\u00B0", font=font60, fill=255)
-        time.sleep(1)
+    img = Image.new('L', (128, 64))
+    draw = ImageDraw.Draw(img)
+    draw.text((20, 0), temp + u"\u00B0", font=font60, fill=255)
+    img_inv = PIL.ImageOps.invert(img)
+    device.display(img.convert('1'))
+    time.sleep(5)
+    device.display(img_inv.convert('1'))
+    time.sleep(5)
 
 
 @loop.job(interval=timedelta(seconds=60))
@@ -35,7 +40,7 @@ def update_temperature():
         p = re.compile('.*<div class="harminchat">.*<div class="homerseklet">(\d+)&deg;C</div>.*', re.DOTALL)
         m = p.match(page.text)
         temp = m.group(1)
-        print('Updated temparature: {} C'.format(temp))
+        print('Updated temperature: {} C'.format(temp))
     except AttributeError as e:
         print('Cannot parse time: {}'.format(e))
         raise
