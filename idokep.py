@@ -4,13 +4,12 @@ import re
 import requests
 import time
 from PIL import Image, ImageFont, ImageDraw, ImageOps
-from datetime import timedelta
 
 from oled.device import ssd1306
 from oled.serial import i2c
-from timeloop import Timeloop
 
-loop = Timeloop()
+SCREEN_HOLD_SECONDS = 10
+
 temp = "?"
 serial = i2c(port=1, address=0x3c)
 device = ssd1306(serial)
@@ -18,7 +17,6 @@ ttf = '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf'
 font60 = ImageFont.truetype(ttf, 60)
 
 
-@loop.job(interval=timedelta(seconds=10))
 def update_screen():
     global temp
     print('Temperature: {} C'.format(temp))
@@ -27,12 +25,11 @@ def update_screen():
     draw.text((20, 0), temp + u"\u00B0", font=font60, fill=255)
     img_inv = PIL.ImageOps.invert(img)
     device.display(img.convert('1'))
-    time.sleep(5)
+    time.sleep(SCREEN_HOLD_SECONDS)
     device.display(img_inv.convert('1'))
-    time.sleep(5)
+    time.sleep(SCREEN_HOLD_SECONDS)
 
 
-@loop.job(interval=timedelta(seconds=60))
 def update_temperature():
     global temp
     try:
@@ -47,7 +44,10 @@ def update_temperature():
 
 
 if __name__ == '__main__':
-    update_temperature()
-    update_screen()
-    loop.start(block=True)
+    t = 0
+    while True:
+        if t % 5 == 0:
+            update_temperature()
+        update_screen()
+        t += 1
 
