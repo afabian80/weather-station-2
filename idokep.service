@@ -1,0 +1,10 @@
+[Unit]
+Description=Idokep station
+
+[Service]
+ExecStart=/home/pi/idokep/idokep.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
