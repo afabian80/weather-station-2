@@ -4,6 +4,8 @@ import re
 import requests
 import time
 from PIL import Image, ImageFont, ImageDraw, ImageOps
+import logging
+from requests import ConnectionError
 
 from oled.device import ssd1306
 from oled.serial import i2c
@@ -16,16 +18,23 @@ device = ssd1306(serial)
 ttf = '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf'
 font60 = ImageFont.truetype(ttf, 66)
 
+logger = logging.getLogger('idokep')
+logger.setLevel(logging.INFO)
+fh = logging.FileHandler('idokep.log')
+fh.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
 
 def update_screen():
     global temp
-    print('Temperature: {} C'.format(temp))
+    logger.debug('Temperature: %s C', temp)
     img = Image.new('L', (128, 64))
     draw = ImageDraw.Draw(img)
     temp_text = str(temp)
     text_size = draw.textsize(temp_text, font=font60)
-    print('size: {}'.format(text_size))
-    x_offset = (128-text_size[0]) / 2
+    x_offset = (128 - text_size[0]) / 2
     draw.text((x_offset, 0), temp_text, font=font60, fill=255)
     img_inv = PIL.ImageOps.invert(img)
     device.display(img.convert('1'))
@@ -41,9 +50,15 @@ def update_temperature():
         p = re.compile('.*<div class="harminchat">.*<div class="homerseklet">(\d+)&deg;C</div>.*', re.DOTALL)
         m = p.match(page.text)
         temp = m.group(1)
-        print('Updated temperature: {} C'.format(temp))
+        logger.info('Updated temperature: %s C', temp)
     except AttributeError as e:
-        print('Cannot parse temperature: {}'.format(e))
+        logger.error('Cannot parse temperature: %s', e)
+        raise
+    except ConnectionError as e:
+        logger.error('Connection error: %s', e)
+        raise
+    except Exception as e:
+        logger.error('Unexpected error: %s', e)
         raise
 
 
@@ -54,4 +69,3 @@ if __name__ == '__main__':
             update_temperature()
         update_screen()
         t += 1
-
