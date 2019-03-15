@@ -1,5 +1,7 @@
 [Unit]
 Description=Idokep station
+Wants=network-online.target
+After=network.target network-online.target
 
 [Service]
 ExecStart=/home/pi/idokep/idokep.py

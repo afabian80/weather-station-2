@@ -24,9 +24,9 @@ def update_screen():
     draw = ImageDraw.Draw(img)
     temp_text = str(temp)
     text_size = draw.textsize(temp_text, font=font60)
+    print('size: {}'.format(text_size))
     x_offset = (128-text_size[0]) / 2
-    y_offset = (64 - text_size[1]) / 2
-    draw.text((x_offset, y_offset), temp_text, font=font60, fill=255)
+    draw.text((x_offset, 0), temp_text, font=font60, fill=255)
     img_inv = PIL.ImageOps.invert(img)
     device.display(img.convert('1'))
     time.sleep(SCREEN_HOLD_SECONDS)
