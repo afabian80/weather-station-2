@@ -11,8 +11,10 @@ from oled.device import ssd1306
 from oled.serial import i2c
 
 SCREEN_HOLD_SECONDS = 10
+MAX_CONNECTION_ERRORS = 6
 
 temp = "?"
+connection_errors = 0
 serial = i2c(port=1, address=0x3c)
 device = ssd1306(serial)
 ttf = '/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf'
@@ -20,7 +22,7 @@ font60 = ImageFont.truetype(ttf, 66)
 
 logger = logging.getLogger('idokep')
 logger.setLevel(logging.INFO)
-fh = logging.FileHandler('idokep.log')
+fh = logging.FileHandler('/var/log/idokep.log')
 fh.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
@@ -45,8 +47,10 @@ def update_screen():
 
 def update_temperature():
     global temp
+    global connection_errors
     try:
         page = requests.get('https://www.idokep.hu')
+        connection_errors = 0
         p = re.compile('.*<div class="harminchat">.*<div class="homerseklet">(\d+)&deg;C</div>.*', re.DOTALL)
         m = p.match(page.text)
         temp = m.group(1)
@@ -55,8 +59,11 @@ def update_temperature():
         logger.error('Cannot parse temperature: %s', e)
         raise
     except ConnectionError as e:
+        connection_errors += 1
         logger.error('Connection error: %s', e)
-        raise
+        logger.error('Remaining connection attempts: %d', MAX_CONNECTION_ERRORS - connection_errors)
+        if connection_errors == MAX_CONNECTION_ERRORS:
+            raise
     except Exception as e:
         logger.error('Unexpected error: %s', e)
         raise
