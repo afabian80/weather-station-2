@@ -57,15 +57,18 @@ def update_temperature():
         logger.info('Updated temperature: %s C', temp)
     except AttributeError as e:
         logger.error('Cannot parse temperature: %s', e)
+        device.hide()
         raise
     except ConnectionError as e:
         connection_errors += 1
         logger.error('Connection error: %s', e)
         logger.error('Remaining connection attempts: %d', MAX_CONNECTION_ERRORS - connection_errors)
         if connection_errors == MAX_CONNECTION_ERRORS:
+            device.hide()
             raise
     except Exception as e:
         logger.error('Unexpected error: %s', e)
+        device.hide()
         raise
 
 
